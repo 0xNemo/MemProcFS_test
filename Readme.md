@@ -1,6 +1,6 @@
 # MemProcFS with lsass minidump
 
-MemProcFS est un outil qui permet de visualiser la mémoire physique sous forme de fichiers dans un file system virtuel. (https://github.com/ufrisk/MemProcFS)
+MemProcFS est un outil qui permet de visualiser la mémoire physique sous forme de fichiers dans un file system virtuel.
 
 Il embarque avec lui un répertoire `minidump` qui contient un fichier `minidump.dmp` compatible avec WinDbg qui peut être utilisé pour du débogage.
 Les fichiers `minidump.dmp` ne sont générés que si certaines conditions préalables sont remplies, dont :
@@ -9,7 +9,9 @@ Les fichiers `minidump.dmp` ne sont générés que si certaines conditions préa
 
 Il peut être pourtant intéressant de récupérer le minidump de `lsass.exe` qui est compatible avec pypykatz.
 
-Juste un petit repo d'une version de memprocfs qui fait un minidump de lsass
+Juste un fork d'une version de memprocfs qui fait un minidump de lsass (https://github.com/ufrisk/MemProcFS)
+
+Just a fork of a version of memprocfs that makes a minidump of lsass (https://github.com/ufrisk/MemProcFS)
 
 ---
 
