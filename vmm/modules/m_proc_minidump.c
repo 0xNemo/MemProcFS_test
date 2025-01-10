@@ -354,15 +354,8 @@ LPCSTR szMMINIDUMP_README =
 " Prerequisites:                                                              \n" \
 "  - process must be an active user-mode (non-kernel) process.                \n";
 
-LPCSTR szMMINIDUMP_SECURITY =
-"Security information relating to the mindump module                          \n" \
-"===================================================                          \n" \
-"MemProcFS does not generate a minidump file for LSASS.EXE due to potential security concerns.\n";
-
-
 typedef struct tdOB_M_MINIDUMP_CONTEXT {
     OB ObHdr;
-    BOOL fDisabledSecurity;
     DWORD cb;
     PBYTE pb;
     QWORD cbMemory;
@@ -1001,11 +994,6 @@ POB_M_MINIDUMP_CONTEXT M_MiniDump_Initialize_Internal(_In_ VMM_HANDLE H, _In_ VM
         GetSystemTimeAsFileTime((PFILETIME)&ctx->qwTimeUpdate);
     }
 
-    // ensure the generated file is ok security wise:
-    if(!strcmp(pProcess->szName, "lsass.exe")) {
-        ctx->fDisabledSecurity = TRUE;
-    }
-
     // finish
     Ob_INCREF(ctx);
     fResult = TRUE;
@@ -1110,9 +1098,6 @@ NTSTATUS M_MiniDump_Read(_In_ VMM_HANDLE H, _In_ PVMMDLL_PLUGIN_CONTEXT ctxP, _O
     if(!_stricmp(ctxP->uszPath, "minidump.dmp")) {
         return M_MiniDump_ReadMiniDump(H, ctxP, pb, cb, pcbRead, cbOffset);
     }
-    if(!_stricmp(ctxP->uszPath, "security.txt")) {
-        return Util_VfsReadFile_FromStrA(szMMINIDUMP_SECURITY, pb, cb, pcbRead, cbOffset);
-    }
     return VMMDLL_STATUS_FILE_INVALID;
 }
 
@@ -1123,13 +1108,9 @@ BOOL M_MiniDump_List(_In_ VMM_HANDLE H, _In_ PVMMDLL_PLUGIN_CONTEXT ctxP, _Inout
     if(ctxP->uszPath[0]) { return FALSE; }
     VMMDLL_VfsList_AddFile(pFileList,  "readme.txt", strlen(szMMINIDUMP_README), NULL);
     if((pObMiniDump = M_MiniDump_GetContext(H, ctxP))) {
-        if(pObMiniDump->fDisabledSecurity) {
-            VMMDLL_VfsList_AddFile(pFileList, "security.txt", strlen(szMMINIDUMP_SECURITY), NULL);
-        } else {
-            ExInfo.dwVersion = VMMDLL_VFS_FILELIST_EXINFO_VERSION;
-            ExInfo.qwCreationTime = ExInfo.qwLastAccessTime = ExInfo.qwLastWriteTime = pObMiniDump->qwTimeUpdate;
-            VMMDLL_VfsList_AddFile(pFileList, "minidump.dmp", pObMiniDump->cb + pObMiniDump->cbMemory, &ExInfo);
-        }
+        ExInfo.dwVersion = VMMDLL_VFS_FILELIST_EXINFO_VERSION;
+        ExInfo.qwCreationTime = ExInfo.qwLastAccessTime = ExInfo.qwLastWriteTime = pObMiniDump->qwTimeUpdate;
+        VMMDLL_VfsList_AddFile(pFileList, "minidump.dmp", pObMiniDump->cb + pObMiniDump->cbMemory, &ExInfo);
         Ob_DECREF_NULL(&pObMiniDump);
     }
     return TRUE;
